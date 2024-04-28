@@ -1,0 +1,54 @@
+version: "3.9"
+services:
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    container_name: yblog_nginx
+    ports:
+      - "8090:80"
+    depends_on:
+      server:
+        condition: service_started
+    restart: always
+    networks:
+      - my_network
+
+  db:
+    image: postgres:latest
+    container_name: yblog_db
+    environment:
+      - POSTGRES_DB=
+      - POSTGRES_USER=
+      - POSTGRES_PASSWORD=
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    ports:
+      - "5433:5432"
+    networks:
+      - my_network
+    volumes:
+      - ./init_db.sh:/docker-entrypoint-initdb.d/init_db.sh
+      - ./db/:/var/lib/postgresql/data
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yblog_app
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge
