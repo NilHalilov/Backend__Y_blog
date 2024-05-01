@@ -12,7 +12,13 @@ from models.media_img import ImageModel
 from models.tweet import TweetModel
 
 
-async def save_image(session: AsyncSession, user_image: UploadFile, token: str, tweet_id: int, user_id: int) -> dict:
+async def save_image(
+    session: AsyncSession,
+    user_image: UploadFile,
+    token: str,
+    tweet_id: int,
+    user_id: int,
+) -> dict:
     """
     Сохранение картинки.
     :param session объект сессии
@@ -21,7 +27,9 @@ async def save_image(session: AsyncSession, user_image: UploadFile, token: str, 
     :param tweet_id: id твита
     :param user_id: id пользователя
     """
-    query_tweet = select(TweetModel).where(TweetModel.id == tweet_id, TweetModel.author_id == user_id)
+    query_tweet = select(TweetModel).where(
+        TweetModel.id == tweet_id, TweetModel.author_id == user_id
+    )
     img_tweet: TweetModel | None = await session.scalar(query_tweet)
     if img_tweet is None:
         raise HTTPException(
@@ -29,7 +37,10 @@ async def save_image(session: AsyncSession, user_image: UploadFile, token: str, 
             detail="This picture doesn't belong to specified tweet or user !",
         )
 
-    if '.' not in user_image.filename or user_image.filename.rsplit('.', 1)[1] not in AllOWED_IMG_EXTENSIONS:
+    if (
+        "." not in user_image.filename
+        or user_image.filename.rsplit(".", 1)[1] not in AllOWED_IMG_EXTENSIONS
+    ):
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail=f"Invalid extension of the uploaded image!",
@@ -52,10 +63,7 @@ async def save_image(session: AsyncSession, user_image: UploadFile, token: str, 
         session.add(img_info)
         await session.commit()
         await session.refresh(img_info)
-        return {
-            "result": True,
-            "media_id": img_info.id
-        }
+        return {"result": True, "media_id": img_info.id}
 
     except Exception as e:
         return {"ERROR": e.args}

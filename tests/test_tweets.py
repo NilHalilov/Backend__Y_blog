@@ -16,10 +16,7 @@ async def test_get_tweets(ac: AsyncClient, user_for_tweets):
     """Тест на получение ленты твитов тех, на кого подписан пользователь"""
     async with test_db.async_session() as session:
         test_follower = UserModel(
-            name="Balrog",
-            nickname="Box",
-            email="BB@capcom.com",
-            token="bal"
+            name="Balrog", nickname="Box", email="BB@capcom.com", token="bal"
         )
         test_tweet = TweetModel(
             author_id=user_for_tweets.id,
@@ -45,10 +42,13 @@ async def test_get_tweets(ac: AsyncClient, user_for_tweets):
 @pytest.mark.asyncio(scope="session")
 async def test_post_tweet(ac: AsyncClient, user_for_tweets):
     """Тест на создание твита"""
-    response = await ac.post(f"/api/tweets/?api_key={user_for_tweets.token}", json={
+    response = await ac.post(
+        f"/api/tweets/?api_key={user_for_tweets.token}",
+        json={
             "content": "Foo",
             "tweet_media_ids": [0],
-    })
+        },
+    )
 
     async with test_db.async_session() as session:
         query = select(TweetModel).order_by(desc(TweetModel.id)).limit(1)
@@ -73,7 +73,9 @@ async def test_delete_tweet(ac: AsyncClient, user_for_tweets):
         result = await session.scalar(query)
         assert result.id == test_tweet.id
 
-        response = await ac.delete(f"/api/tweets/{result.id}/?api_key={user_for_tweets.token}")
+        response = await ac.delete(
+            f"/api/tweets/{result.id}/?api_key={user_for_tweets.token}"
+        )
         result = await session.scalar(query)
         assert result is None or result.id != test_tweet.id
 
@@ -92,7 +94,9 @@ async def test_like_tweet(ac: AsyncClient, user_for_tweets):
         session.add(test_tweet)
         await session.commit()
 
-    response = await ac.post(f"/api/tweets/{test_tweet.id}/likes/?api_key={user_for_tweets.token}")
+    response = await ac.post(
+        f"/api/tweets/{test_tweet.id}/likes/?api_key={user_for_tweets.token}"
+    )
 
     async with test_db.async_session() as session:  # без новой сессии возвращает первоначальное кол-во лайков
         query = select(TweetModel).where(TweetModel.id == test_tweet.id)
@@ -122,7 +126,9 @@ async def test_delete_like(ac: AsyncClient, user_for_tweets):
         session.add(like_relationship)
         await session.commit()
 
-    response = await ac.delete(f"/api/tweets/{test_tweet.id}/likes/?api_key={user_for_tweets.token}")
+    response = await ac.delete(
+        f"/api/tweets/{test_tweet.id}/likes/?api_key={user_for_tweets.token}"
+    )
 
     async with test_db.async_session() as session:  # без новой сессии возвращает первоначальное кол-во лайков
         query = select(TweetModel).where(TweetModel.id == test_tweet.id)

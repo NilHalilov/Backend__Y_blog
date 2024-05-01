@@ -32,7 +32,9 @@ def event_loop(request):
 
 @pytest_asyncio.fixture(scope="session")
 async def ac() -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://127.0.0.1:8000/") as ac:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://127.0.0.1:8000/"
+    ) as ac:
         yield ac
 
 
@@ -40,10 +42,7 @@ async def ac() -> AsyncGenerator[AsyncClient, None]:
 async def user_for_tweets():
     async with test_db.async_session() as session:
         test_user: UserModel = UserModel(
-            name="Vega",
-            nickname="Masher",
-            email="V@capcom.com",
-            token="vvv"
+            name="Vega", nickname="Masher", email="V@capcom.com", token="vvv"
         )
 
         session.add(test_user)
